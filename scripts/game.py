@@ -10,7 +10,7 @@ pygame.mixer.init()
 pygame.display.set_caption("Asteroids")
 
 
-class Player():
+class Player1():
     """
     Representa al jugador en el juego.
 
@@ -190,6 +190,108 @@ class Player2():
         """Mueve al jugador hacia atrás en la dirección que está mirando."""
         self.x -= self.cos * PLAYER2_VEL
         self.y += self.sin * PLAYER2_VEL
+        self.wrap_screen()
+        self.update_sprite()
+
+    def wrap_screen(self) -> None:
+        """Teletransporta al jugador si sale por los bordes de la pantalla."""
+        if self.x < 0:
+            self.x = SX
+        elif self.x > SX:
+            self.x = 0
+        if self.y < 0:
+            self.y = SY
+        elif self.y > SY:
+            self.y = 0
+
+    def update_sprite(self) -> None:
+        """Actualiza la imagen, el rectángulo rotado y las coordenadas del jugador."""
+        self.rotateSprite = pygame.transform.rotate(self.img, self.angle)
+        self.rotateRect = self.rotateSprite.get_rect()
+        self.rotateRect.center = (self.x, self.y)
+        self.cos = math.cos(math.radians(self.angle + 90))
+        self.sin = math.sin(math.radians(self.angle + 90))
+        self.head = (self.x + self.cos * self.w // 2, self.y + self.sin * self.h // 2)
+        self.update_rect()  # Actualiza el rectángulo de colisión
+
+class Player3():
+    """
+    Representa al jugador en el juego.
+
+    Atributos:
+        img (pygame.Surface): Imagen del jugador.
+        w (int): Ancho del Jugador Sprite.
+        h (int): Altura del Jugador Sprite.
+        x (int): Coordenada X actual del jugador (centrada horizontalmente).
+        y (int): Coordenada Y actual del jugador (centrada verticalmente).
+        angle (float): Ángulo de rotación actual del jugador en grados.
+        rotateSprite (pygame.Surface): Imagen del jugador rotada según el ángulo actual.
+        rotateRect (pygame.Rect): Rectángulo de colisión del sprite del jugador rotado.
+        cos (float): Coseno del ángulo del jugador (usado para cálculos de movimiento y rotación).
+        sin (float): Seno del ángulo del jugador (usado para cálculos de movimiento y rotación).
+        head (tuple): Coordenadas de la "cabeza" del jugador (usadas como origen de las balas).
+        rect (pygame.Rect): Rectángulo de colisión usado para detectar colisiones con asteroides y balas.
+    """
+
+    def __init__(self):
+        """
+        Inicializa al jugador en la posicion por defecto, orientacion, sprites.
+        """
+        self.img = player3_sprite
+        self.w = self.img.get_width()
+        self.h = self.img.get_height()
+        self.x = SX // 2  # Centra al jugador Horizontalmente en la pantalla
+        self.y = SY // 2  # Centra al jugador verticalmente en la pantalla
+        
+        self.angle = 0  # Ángulo de rotación inicial
+        self.rotateSprite = pygame.transform.rotate(self.img, self.angle)
+        self.rotateRect = self.rotateSprite.get_rect()
+        self.rotateRect.center = (self.x, self.y)
+
+        # Calcular el coseno y seno inicial para el movimiento
+        self.cos = math.cos(math.radians(self.angle + 90)) 
+        self.sin = math.sin(math.radians(self.angle + 90))
+        
+        # Determine la posición de la "cabeza" del jugador (usada para disparar balas)
+        self.head = (self.x + self.cos * self.w // 2, self.y + self.sin * self.h // 2)
+        self.rect = pygame.Rect(self.x - self.w // 2, self.y - self.h // 2, self.w, self.h)  #Rectángulo de colisión #default: - - | current: + +
+
+    def update_rect(self) -> None:
+        """
+        Actualiza la posición del rectángulo de colisión para que coincida con la posición actual del jugador.
+        """
+        self.rect.center = (self.x, self.y)
+
+    def draw(self, display) -> None:
+        """
+    Dibuja el sprite del jugador rotado en la ventana del juego.
+
+    Argumentos:
+    display (pygame.Surface): La superficie del juego donde se dibuja el jugador.
+        """
+        display.blit(self.rotateSprite, self.rotateRect)
+
+    def rotate_left(self) -> None:
+        """Rota al jugador hacia la izquierda a una velocidad de rotación fija."""
+        self.angle += PLAYER3_ROTATION_VEL
+        self.update_sprite()
+
+    def rotate_right(self) -> None:
+        """Rota al jugador hacia la derecha a una velocidad de rotación fija."""
+        self.angle -= PLAYER3_ROTATION_VEL
+        self.update_sprite()
+
+    def move_forward(self) -> None:
+        """Mueve al jugador hacia adelante en la dirección que está mirando."""
+        self.x += self.cos * PLAYER3_VEL
+        self.y -= self.sin * PLAYER3_VEL
+        self.wrap_screen()
+        self.update_sprite()
+
+    def move_backwards(self) -> None:
+        """Mueve al jugador hacia atrás en la dirección que está mirando."""
+        self.x -= self.cos * PLAYER3_VEL
+        self.y += self.sin * PLAYER3_VEL
         self.wrap_screen()
         self.update_sprite()
 
@@ -531,7 +633,7 @@ def read_scores() -> list:
     except FileNotFoundError:
         return []
 
-player = Player()
+player = Player1()
 
 def show_game_over_screen() -> None:
     """
@@ -594,7 +696,7 @@ def show_top_5() -> None:
 
     showing_top_5 = True
     while showing_top_5:
-        display.fill((BLACK))  
+        display.fill((BLACK))
         display.blit(bg_big , (0, 0))
         title = font_menu.render("TOP 5 JUGADORES", True, (WHITE))
         display.blit(title, (SX // 2 - title.get_width() // 2, 50))
@@ -627,8 +729,8 @@ def reset_game() -> None:
     asteroids.clear()
     player_bullet.clear()
     stars.clear()
-
-def start_game() -> None:
+player = Player1()
+def start_game(player_param) -> None:
     """
     Bucle principal del juego que maneja toda la lógica del juego. 
     El juego continúa hasta que el jugador pierde todas las vidas, momento en el cual se muestra la pantalla de juego terminado.
@@ -646,6 +748,8 @@ def start_game() -> None:
     global run, count, player_bullet, asteroids, lives, gg, score, stars, fire_boost, f_boost
     soundtrack_sfx.play(loops=-1)  # Repetir la música de fondo
     startengine_sfx.play()  # Reproducir el efecto de sonido de arranque del Motor
+    global player
+    player = player_param
 
     while run:
         clock.tick(60)  # Limita la tasa de cuadros a 60 FPS

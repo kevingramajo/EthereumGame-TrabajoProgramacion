@@ -10,6 +10,9 @@ PLAYER_VEL = 6 #DEFAULT 6
 PLAYER_ROTATION_VEL = 5 #DEFAULT 5
 PLAYER2_VEL = 8
 PLAYER2_ROTATION_VEL = 6 #DEFAULT 5
+PLAYER3_VEL = 10
+PLAYER3_ROTATION_VEL = 7 #DEFAULT 5
+
 
 BULLET_VEL = 10 #DEFAULT 10
 
@@ -25,9 +28,12 @@ GRAY = (100, 100, 100)
 
 
 # Opciones del menu e inicializacion de selected_option
-menu_options = ["Comenzar","Opciones", "Controles", "Creditos", "Salir del juego"]
+menu_options = ["Comenzar","Seleccionar Nave", "Opciones", "Controles", "Salir del juego"]
 selected_option = 0
 
+# Opciones de Nave
+nave_options = ["Leviathan","Astra Nova", "Starlance"]
+naveselected_option = 0
 #VOLUMEN
 SFX_VOLUME_LEVELS = 1
 MUSIC_VOLUME_LEVELS = 1

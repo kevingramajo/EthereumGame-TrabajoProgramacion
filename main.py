@@ -48,6 +48,7 @@ def main_menu() -> None:
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+                return
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
                     selected_option = (selected_option - 1) % len(menu_options)
@@ -59,16 +60,17 @@ def main_menu() -> None:
                     clickselect_sfx.play()  # Emite el audio de confirmacion
                     if selected_option == 0:  # Inicia el juego
                         bandera_menu = False # Cierra el menu
-                        start_game()
-                    if selected_option == 1: # Muestra el menu de opciones
+                        start_game(player)
+                    if selected_option == 2: # Muestra el menu de opciones
                         settings_menu()
-                    elif selected_option == 2:  # Muestra la pantalla de controles
-                        show_controls()
-                    elif selected_option == 3:  # Muestra la pantalla de creditos
+                    elif selected_option == 1:  # Muestra la pantalla de creditos
                         show_credits()
+                    elif selected_option == 3:  # Muestra la pantalla de controles
+                        show_controls()
                     elif selected_option == 4:  # Cierra el programa
                         pygame.quit()
                         sys.exit()
+                        return
 
         pygame.display.update()  # Actualiza la imagen al terminar el loop SIEMPRE
 
@@ -108,49 +110,81 @@ def show_controls() -> None:
                     bandera_controles = False # Cierra el loop y con ello la ventana de controles
 
         pygame.display.update()  # Actualiza la imagen al terminar el loop SIEMPRE
-
-    main_menu()  # Vuelve a abrir el menu principal
-
+    return
 
 def show_credits() -> None:
-    """
-    Muestra la pantalla de créditos y gestiona la interacción del usuario para volver al menú principal.
-    """
+    global naveselected_option
+
+    nave_options = ["Leviathan", "Astra Nova", "Starlance"]
+
     bandera_credits = True
+
     while bandera_credits:
-        # Llena el fondo de negro
         window.fill(BLACK)
+        window.blit(bg_seleccionave, (-380, -200))
 
-        # Introduce el logo//// Coordenadas para el logo
- 
-        # Texto de la pantalla de creditos
-        credits_text = [
-            "Kevin Gramajo",
-            " ",
-            "Presiona ESC para volver",
-        ]
+        # Dibujar sprites de naves
+        window.blit(player_sprite, (SY // 2.2, SX // 2))
+        window.blit(player2_sprite, (SY // 5, SX // 2))
+        window.blit(player3_sprite, (SY - 200, SX // 2))
 
-        # Renderiza y muestra cada linea de texto
-        for i, line in enumerate(credits_text):
-            text = font_menu.render(line, True, WHITE)
-            window.blit(
-                text, (SY // 2 - text.get_width() // 2, SX // 2 + i * 50)
-            )
+        # Título
+        title = font_menualternative.render("Selecciona tu Nave", True, WHITE)
+        window.blit(title, (SY // 2 - title.get_width() // 2, SX // 6))
 
-        # Toma el input del usuario
+        # Opciones debajo de las naves
+        for i, nombre in enumerate(nave_options):
+            color = WHITE if i == naveselected_option else GRAY
+            text = font_menualternative.render(nombre, True, color)
+
+            # Posiciones según la nave correspondiente
+            if i == 0:
+                xpos = SY // 2.2
+            elif i == 1:
+                xpos = SY // 5
+            else:
+                xpos = SY - 200
+
+            ypos = SX // 2 + 150
+            window.blit(text, (xpos, ypos))
+
+        # Eventos
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == pygame.KEYDOWN: # Toma el evento de cuando se presiona una tecla
-                if event.key == pygame.K_ESCAPE: # Evalua si es ESC
-                    returnselect_sfx.play()  # Efecto de audio
-                    bandera_credits = False # Si es ESC cierra el loop
 
-        pygame.display.update()  # Actualiza la imagen al terminar el loop SIEMPRE
+            if event.type == pygame.KEYDOWN:
 
-    main_menu()  # Abre el menu principal
+                if event.key == pygame.K_RIGHT:
+                    naveselected_option = (naveselected_option - 1) % len(nave_options)
+                    select_sfx.play()
 
+                if event.key == pygame.K_LEFT:
+                    naveselected_option = (naveselected_option + 1) % len(nave_options)
+                    select_sfx.play()
+
+                if event.key == pygame.K_RETURN:
+                    clickselect_sfx.play()
+
+                    if naveselected_option == 0:
+                        player_param = Player1()
+                        start_game(player_param)
+                    elif naveselected_option == 1:
+                        player_param = Player2()
+                        start_game(player_param)
+                    elif naveselected_option == 2:
+                        player_param = Player3()
+                        start_game(player_param)
+                    return
+
+                if event.key == pygame.K_ESCAPE:
+                    returnselect_sfx.play()
+                    bandera_credits = False
+
+        pygame.display.update()
+    return
+        
 def settings_menu() -> None:  
     settings_options = ["Tamaño de la ventana", "Opciones de volumen", "Presiona ESC para volver"]  
     selected_settings_option = 0  
@@ -190,7 +224,8 @@ def settings_menu() -> None:
                     returnselect_sfx.play()  
                     bandera_settings = False  
 
-        pygame.display.update()  
+        pygame.display.update()
+    return  
 
 def volume_settings() -> None:
     global SFX_VOLUME_LEVELS, MUSIC_VOLUME_LEVELS, select_sfx, clickselect_sfx, returnselect_sfx, soundtrack_sfx
@@ -316,6 +351,7 @@ def screen_size_settings() -> None:
     settings_menu()  # Abre el menu de ajustes para volver
 
 
-
-main_menu()  
-
+if __name__ == "__main__":
+    pygame.init()
+    pygame.mixer.init()
+    main_menu()

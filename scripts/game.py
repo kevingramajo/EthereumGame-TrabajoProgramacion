@@ -112,6 +112,108 @@ class Player():
         self.head = (self.x + self.cos * self.w // 2, self.y + self.sin * self.h // 2)
         self.update_rect()  # Actualiza el rectángulo de colisión
 
+class Player2():
+    """
+    Representa al jugador en el juego.
+
+    Atributos:
+        img (pygame.Surface): Imagen del jugador.
+        w (int): Ancho del Jugador Sprite.
+        h (int): Altura del Jugador Sprite.
+        x (int): Coordenada X actual del jugador (centrada horizontalmente).
+        y (int): Coordenada Y actual del jugador (centrada verticalmente).
+        angle (float): Ángulo de rotación actual del jugador en grados.
+        rotateSprite (pygame.Surface): Imagen del jugador rotada según el ángulo actual.
+        rotateRect (pygame.Rect): Rectángulo de colisión del sprite del jugador rotado.
+        cos (float): Coseno del ángulo del jugador (usado para cálculos de movimiento y rotación).
+        sin (float): Seno del ángulo del jugador (usado para cálculos de movimiento y rotación).
+        head (tuple): Coordenadas de la "cabeza" del jugador (usadas como origen de las balas).
+        rect (pygame.Rect): Rectángulo de colisión usado para detectar colisiones con asteroides y balas.
+    """
+
+    def __init__(self):
+        """
+        Inicializa al jugador en la posicion por defecto, orientacion, sprites.
+        """
+        self.img = player2_sprite
+        self.w = self.img.get_width()
+        self.h = self.img.get_height()
+        self.x = SX // 2  # Centra al jugador Horizontalmente en la pantalla
+        self.y = SY // 2  # Centra al jugador verticalmente en la pantalla
+        
+        self.angle = 0  # Ángulo de rotación inicial
+        self.rotateSprite = pygame.transform.rotate(self.img, self.angle)
+        self.rotateRect = self.rotateSprite.get_rect()
+        self.rotateRect.center = (self.x, self.y)
+
+        # Calcular el coseno y seno inicial para el movimiento
+        self.cos = math.cos(math.radians(self.angle + 90)) 
+        self.sin = math.sin(math.radians(self.angle + 90))
+        
+        # Determine la posición de la "cabeza" del jugador (usada para disparar balas)
+        self.head = (self.x + self.cos * self.w // 2, self.y + self.sin * self.h // 2)
+        self.rect = pygame.Rect(self.x - self.w // 2, self.y - self.h // 2, self.w, self.h)  #Rectángulo de colisión #default: - - | current: + +
+
+    def update_rect(self) -> None:
+        """
+        Actualiza la posición del rectángulo de colisión para que coincida con la posición actual del jugador.
+        """
+        self.rect.center = (self.x, self.y)
+
+    def draw(self, display) -> None:
+        """
+    Dibuja el sprite del jugador rotado en la ventana del juego.
+
+    Argumentos:
+    display (pygame.Surface): La superficie del juego donde se dibuja el jugador.
+        """
+        display.blit(self.rotateSprite, self.rotateRect)
+
+    def rotate_left(self) -> None:
+        """Rota al jugador hacia la izquierda a una velocidad de rotación fija."""
+        self.angle += PLAYER2_ROTATION_VEL
+        self.update_sprite()
+
+    def rotate_right(self) -> None:
+        """Rota al jugador hacia la derecha a una velocidad de rotación fija."""
+        self.angle -= PLAYER2_ROTATION_VEL
+        self.update_sprite()
+
+    def move_forward(self) -> None:
+        """Mueve al jugador hacia adelante en la dirección que está mirando."""
+        self.x += self.cos * PLAYER2_VEL
+        self.y -= self.sin * PLAYER2_VEL
+        self.wrap_screen()
+        self.update_sprite()
+
+    def move_backwards(self) -> None:
+        """Mueve al jugador hacia atrás en la dirección que está mirando."""
+        self.x -= self.cos * PLAYER2_VEL
+        self.y += self.sin * PLAYER2_VEL
+        self.wrap_screen()
+        self.update_sprite()
+
+    def wrap_screen(self) -> None:
+        """Teletransporta al jugador si sale por los bordes de la pantalla."""
+        if self.x < 0:
+            self.x = SX
+        elif self.x > SX:
+            self.x = 0
+        if self.y < 0:
+            self.y = SY
+        elif self.y > SY:
+            self.y = 0
+
+    def update_sprite(self) -> None:
+        """Actualiza la imagen, el rectángulo rotado y las coordenadas del jugador."""
+        self.rotateSprite = pygame.transform.rotate(self.img, self.angle)
+        self.rotateRect = self.rotateSprite.get_rect()
+        self.rotateRect.center = (self.x, self.y)
+        self.cos = math.cos(math.radians(self.angle + 90))
+        self.sin = math.sin(math.radians(self.angle + 90))
+        self.head = (self.x + self.cos * self.w // 2, self.y + self.sin * self.h // 2)
+        self.update_rect()  # Actualiza el rectángulo de colisión
+
 class Bullet():
     """
     Representa una bala disparada por el jugador.
@@ -418,7 +520,12 @@ def read_scores() -> list:
         with open("puntuaciones.txt", "r") as file:
             scores = []
             for line in file:
-                name, score = line.strip().split(": ")
+                line = line.strip()
+
+                if ": " not in line:   # Evita crasheo si la línea está mal
+                    continue
+
+                name, score = line.rsplit(": ", 1)
                 scores.append((name, int(score)))
             return scores
     except FileNotFoundError:
@@ -463,7 +570,9 @@ def show_game_over_screen() -> None:
                     name = name[:-1]
                 else:
                     if len(name) < 10:
-                        name += event.unicode
+                        char = event.unicode
+                        if char.isalpha() or char == " ":   # Solo letras y espacio
+                            name += char
 
 
 def bubble_sort_scores(scores: list[tuple[str, int]]) -> None: #Bubble Sort como algoritmo de ordenamiento para ubicar los scores mayor a menor

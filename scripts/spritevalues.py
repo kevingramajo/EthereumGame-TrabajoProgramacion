@@ -19,6 +19,12 @@ bg_bigmenu = pygame.transform.scale(bg_menu, (1500, 1500))
 player_sprite = pygame.image.load("assets/sprites/triangle.png")
 player_big = pygame.transform.scale(player_sprite, (1500, 1500))
 
+player2_sprite = pygame.image.load("assets/sprites/triangle2.png")
+player2_big = pygame.transform.scale(player_sprite, (1500, 1500))
+
+player3_sprite = pygame.image.load("assets/sprites/triangle3.png")
+player3_big = pygame.transform.scale(player_sprite, (1500, 1500))
+
 enemy_sprite = pygame.image.load("assets/sprites/enemy.png")
 enemy_big = pygame.transform.scale(enemy_sprite, (1500, 1500))
 
